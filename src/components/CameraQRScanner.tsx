@@ -17,6 +17,7 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isScanning, setIsScanning] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,7 +31,12 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
         const element = document.getElementById(scannerId);
         if (!element) return;
 
-        // Initialize instance
+        // Check mediaDevices support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Il dispositivo non supporta l\'accesso alla fotocamera.');
+        }
+
+        // Initialize scanner instance
         if (!scannerRef.current) {
           scannerRef.current = new Html5Qrcode(scannerId, {
             formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
@@ -45,6 +51,51 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
           await qrCode.stop();
         }
 
+        // 1. Request camera permission upfront so Android WebView triggers prompt if needed
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: facingMode } },
+          });
+          // Immediately stop preview stream to release camera hardware for Html5Qrcode
+          stream.getTracks().forEach((track) => track.stop());
+        } catch (permErr: unknown) {
+          const pErr = permErr as { name?: string; message?: string };
+          if (pErr?.name === 'NotAllowedError' || pErr?.name === 'PermissionDeniedError') {
+            throw new Error('Permesso fotocamera negato. Consenti l\'accesso alla fotocamera per scannerizzare i QR code.');
+          }
+        }
+
+        // 2. Query available video devices
+        let cameraSelection: string | { facingMode: 'environment' | 'user' } = { facingMode };
+        try {
+          const devices = await Html5Qrcode.getCameras();
+          if (devices && devices.length > 0) {
+            if (facingMode === 'environment') {
+              const backCam =
+                devices.find(
+                  (d) =>
+                    d.label.toLowerCase().includes('back') ||
+                    d.label.toLowerCase().includes('rear') ||
+                    d.label.toLowerCase().includes('posteriore') ||
+                    d.label.toLowerCase().includes('environment')
+                ) || devices[devices.length - 1]; // On Android, back camera is often the last or labelled back
+              cameraSelection = backCam.id;
+            } else {
+              const frontCam =
+                devices.find(
+                  (d) =>
+                    d.label.toLowerCase().includes('front') ||
+                    d.label.toLowerCase().includes('user') ||
+                    d.label.toLowerCase().includes('anteriore')
+                ) || devices[0];
+              cameraSelection = frontCam.id;
+            }
+          }
+        } catch (devErr) {
+          console.warn('Error querying devices, falling back to facingMode constraint:', devErr);
+          cameraSelection = { facingMode };
+        }
+
         const config = {
           fps: 15,
           qrbox: { width: 250, height: 250 },
@@ -52,7 +103,7 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
         };
 
         await qrCode.start(
-          { facingMode },
+          cameraSelection,
           config,
           (decodedText) => {
             if (isMounted) {
@@ -76,11 +127,11 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
         if (isMounted) {
           setHasCamera(false);
           const errorMsg =
-            err instanceof Error ? err.message : 'Impossibile accedere alla fotocamera.';
+            err instanceof Error ? err.message : String(err);
           setCameraError(
-            errorMsg.includes('NotAllowedError') || errorMsg.includes('Permission')
-              ? 'Permesso fotocamera negato. Consenti l\'accesso alla videocamera nelle impostazioni del browser.'
-              : 'Nessuna fotocamera rilevata o fotocamera occupata da un\'altra applicazione.'
+            errorMsg.includes('Permesso') || errorMsg.includes('NotAllowedError') || errorMsg.includes('Permission')
+              ? 'Permesso fotocamera negato. Consenti l\'accesso alla fotocamera nelle impostazioni dell\'app per inquadrare i QR code.'
+              : errorMsg || 'Impossibile avviare la fotocamera.'
           );
         }
       }
@@ -96,7 +147,7 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
         });
       }
     };
-  }, [facingMode, onScanSuccess, onError, scannerId]);
+  }, [facingMode, onScanSuccess, onError, scannerId, retryKey]);
 
   // Switch between front & back camera
   const handleToggleFacingMode = () => {
@@ -158,9 +209,10 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
             </button>
             <button
               onClick={() => {
-                setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
+                sound.playCuteTap();
+                setRetryKey((k) => k + 1);
               }}
-              className="px-4 py-2 bg-surface-variant text-on-background font-headline text-xs font-extrabold rounded-full border border-on-background/30"
+              className="px-4 py-2 bg-surface-variant text-on-background font-headline text-xs font-extrabold rounded-full border border-on-background/30 active:scale-95 transition-all"
             >
               Riprova
             </button>

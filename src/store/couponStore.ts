@@ -5,13 +5,13 @@ import { MASCOT } from '../theme/tokens';
 
 const USER_PROFILE_STORAGE_KEY = 'kupon_user_profile_v1';
 
-const DEFAULT_PROFILE: UserProfile = {
-  name: 'Alex Creator',
-  handle: '@alex_kupon',
+export const DEFAULT_PROFILE: UserProfile = {
+  name: '',
+  handle: '',
   avatar: MASCOT.avatarUrl,
-  bio: 'Regalo caffè, sorrisi e buone pizze nel weekend! 🍕☕',
+  bio: 'Regalo caffè, sorrisi e momenti speciali! 🎟️✨',
   favoriteTheme: 'peach',
-  defaultSenderName: 'Alex',
+  defaultSenderName: '',
   soundEnabled: true,
 };
 
@@ -27,9 +27,13 @@ function loadStoredProfile(): UserProfile {
   return DEFAULT_PROFILE;
 }
 
+export type StarterPackType = 'welcome_gift' | 'empty' | 'demo';
+
 interface CouponState {
   coupons: Coupon[];
   userProfile: UserProfile;
+  hasCompletedSetup: boolean;
+  isOnboardingOpen: boolean;
   activeTab: TabType;
   selectedCouponForQR: Coupon | null;
   qrModalMode: QRModalMode;
@@ -38,7 +42,7 @@ interface CouponState {
   filterStatus: 'all' | 'active' | 'redeemed';
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
   
-  // Actions
+  // Navigation & UI Actions
   setActiveTab: (tab: TabType) => void;
   setFilterStatus: (status: 'all' | 'active' | 'redeemed') => void;
   openQRModal: (coupon: Coupon, mode?: QRModalMode) => void;
@@ -50,11 +54,17 @@ interface CouponState {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   hideToast: () => void;
   
-  // Profile actions
+  // Setup & Profile actions
+  openOnboarding: () => void;
+  closeOnboarding: () => void;
+  completeSetup: (profileUpdates: Partial<UserProfile>, starterPack: StarterPackType) => void;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
 
   // Data actions
   loadCoupons: () => void;
+  loadDemoCoupons: () => void;
+  clearAllCoupons: () => void;
+  clearRedeemedCoupons: () => void;
   createCoupon: (input: CreateCouponInput) => Coupon;
   processScannedCode: (rawScannedText: string) => RedemptionResult;
   redeemCoupon: (tokenOrId: string) => RedemptionResult;
@@ -73,6 +83,8 @@ export const useCouponStore = create<CouponState>((set, get) => {
   return {
     coupons: CouponService.getCoupons(),
     userProfile: loadStoredProfile(),
+    hasCompletedSetup: CouponService.hasCompletedSetup(),
+    isOnboardingOpen: false,
     activeTab: 'wallet',
     selectedCouponForQR: null,
     qrModalMode: 'redeem',
@@ -90,6 +102,55 @@ export const useCouponStore = create<CouponState>((set, get) => {
     closeShareModal: () => set({ selectedCouponForShare: null }),
     openScanner: () => set({ isScannerOpen: true }),
     closeScanner: () => set({ isScannerOpen: false }),
+
+    openOnboarding: () => set({ isOnboardingOpen: true }),
+    closeOnboarding: () => set({ isOnboardingOpen: false }),
+
+    completeSetup: (profileUpdates, starterPack) => {
+      const cleanName = profileUpdates.name?.trim() || 'Amico Kupon';
+      const cleanHandle = profileUpdates.handle?.trim() 
+        ? (profileUpdates.handle.startsWith('@') ? profileUpdates.handle : `@${profileUpdates.handle}`)
+        : `@${cleanName.toLowerCase().replace(/\s+/g, '_')}`;
+
+      const updatedProfile: UserProfile = {
+        ...get().userProfile,
+        ...profileUpdates,
+        name: cleanName,
+        handle: cleanHandle,
+        defaultSenderName: profileUpdates.defaultSenderName?.trim() || cleanName,
+      };
+
+      // 1. Save Profile
+      set({ userProfile: updatedProfile });
+      try {
+        localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(updatedProfile));
+      } catch {
+        // ignore
+      }
+
+      // 2. Initialize Starter Pack
+      if (starterPack === 'welcome_gift') {
+        const welcome = CouponService.createWelcomeCoupon(cleanName);
+        CouponService.saveCoupons([welcome]);
+      } else if (starterPack === 'demo') {
+        CouponService.resetToSeed();
+      } else {
+        // Empty
+        CouponService.saveCoupons([]);
+      }
+
+      // 3. Mark setup as completed
+      CouponService.setSetupCompleted(true);
+
+      set({
+        coupons: CouponService.getCoupons(),
+        hasCompletedSetup: true,
+        isOnboardingOpen: false,
+        activeTab: 'wallet',
+      });
+
+      get().showToast(`✨ Benvenuto su Kupon, ${cleanName}!`, 'success');
+    },
 
     updateUserProfile: (updates) => {
       const updated = { ...get().userProfile, ...updates };
@@ -116,10 +177,28 @@ export const useCouponStore = create<CouponState>((set, get) => {
       set({ coupons: CouponService.getCoupons() });
     },
 
+    loadDemoCoupons: () => {
+      const demoCoupons = CouponService.resetToSeed();
+      set({ coupons: demoCoupons, activeTab: 'wallet' });
+      get().showToast('📦 Pacchetto Demo caricato con successo!', 'success');
+    },
+
+    clearAllCoupons: () => {
+      CouponService.clearWallet();
+      set({ coupons: [] });
+      get().showToast('🗑️ Portafoglio svuotato.', 'info');
+    },
+
+    clearRedeemedCoupons: () => {
+      CouponService.clearRedeemed();
+      set({ coupons: CouponService.getCoupons() });
+      get().showToast('🧹 Biglietti riscattati rimossi dalla cronologia!', 'info');
+    },
+
     createCoupon: (input) => {
       const newCoupon = CouponService.createCoupon({
         ...input,
-        sender_id: input.sender_id || get().userProfile.defaultSenderName || get().userProfile.name,
+        sender_id: input.sender_id || get().userProfile.defaultSenderName || get().userProfile.name || 'You',
       });
       set({ coupons: CouponService.getCoupons(), activeTab: 'wallet' });
       get().showToast(`✨ Creato "${newCoupon.title}"!`, 'success');

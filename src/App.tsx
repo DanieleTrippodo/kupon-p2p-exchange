@@ -6,6 +6,7 @@ import { QRCodeModal } from './components/QRCodeModal';
 import { QRScannerModal } from './components/QRScannerModal';
 import { ShareCouponModal } from './components/ShareCouponModal';
 import { GiftClaimModal } from './components/GiftClaimModal';
+import { OnboardingModal } from './components/OnboardingModal';
 import { HomeScreen } from './screens/HomeScreen';
 import { CreateCouponScreen } from './screens/CreateCouponScreen';
 import { ScanScreen } from './screens/ScanScreen';
@@ -24,6 +25,8 @@ export const App: React.FC = () => {
   const toast = useCouponStore((state) => state.toast);
   const hideToast = useCouponStore((state) => state.hideToast);
   const loadCoupons = useCouponStore((state) => state.loadCoupons);
+  const hasCompletedSetup = useCouponStore((state) => state.hasCompletedSetup);
+  const isOnboardingOpen = useCouponStore((state) => state.isOnboardingOpen);
 
   const qrModalMode = useCouponStore((state) => state.qrModalMode);
 
@@ -69,6 +72,11 @@ export const App: React.FC = () => {
       <QRScannerModal
         isOpen={isScannerOpen}
         onClose={closeScanner}
+      />
+
+      {/* First Run Onboarding & Setup Wizard */}
+      <OnboardingModal
+        isOpen={!hasCompletedSetup || isOnboardingOpen}
       />
 
       {/* Toast Notification Banner */}

@@ -48,7 +48,12 @@ export class QRService {
       couponId: coupon.id,
       token: coupon.qr_token,
       title: coupon.title,
+      description: coupon.description,
+      icon_name: coupon.icon_name,
+      color_theme: coupon.color_theme,
       sender: coupon.sender_id,
+      recipient: coupon.recipient_id,
+      secret_message: coupon.secret_message,
       timestamp: coupon.created_at,
     };
     return JSON.stringify(payload);
@@ -89,7 +94,7 @@ export class QRService {
                 icon_name: parsed.icon_name || 'redeem',
                 color_theme: parsed.color_theme || 'peach',
                 sender_id: parsed.sender || 'Un amico',
-                recipient_id: 'You',
+                recipient_id: parsed.recipient || 'You',
                 secret_message: parsed.secret_message,
                 qr_token: parsed.token,
                 status: 'active',
@@ -99,10 +104,25 @@ export class QRService {
             };
           }
 
+          // REDEEM ACTION
           return {
             action: 'redeem',
             couponId: parsed.couponId,
             token: parsed.token,
+            fullCouponData: {
+              id: parsed.couponId,
+              title: parsed.title || 'Kupon',
+              description: parsed.description || '',
+              icon_name: parsed.icon_name || 'local_cafe',
+              color_theme: parsed.color_theme || 'peach',
+              sender_id: parsed.sender || 'Un amico',
+              recipient_id: parsed.recipient || 'You',
+              secret_message: parsed.secret_message,
+              qr_token: parsed.token,
+              status: 'redeemed',
+              created_at: parsed.timestamp || new Date().toISOString(),
+              redeemed_at: new Date().toISOString(),
+            },
           };
         }
       } catch {

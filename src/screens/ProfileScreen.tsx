@@ -12,6 +12,10 @@ export const ProfileScreen: React.FC = () => {
   const userProfile = useCouponStore((state) => state.userProfile);
   const updateUserProfile = useCouponStore((state) => state.updateUserProfile);
   const showToast = useCouponStore((state) => state.showToast);
+  const openOnboarding = useCouponStore((state) => state.openOnboarding);
+  const loadDemoCoupons = useCouponStore((state) => state.loadDemoCoupons);
+  const clearAllCoupons = useCouponStore((state) => state.clearAllCoupons);
+  const clearRedeemedCoupons = useCouponStore((state) => state.clearRedeemedCoupons);
 
   // Edit Mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -37,7 +41,7 @@ export const ProfileScreen: React.FC = () => {
     fireRedemptionConfetti();
 
     updateUserProfile({
-      name: name.trim() || 'Alex Creator',
+      name: name.trim() || 'Amico Kupon',
       handle: handle.trim().startsWith('@') ? handle.trim() : `@${handle.trim()}`,
       bio: bio.trim(),
       avatar,
@@ -377,6 +381,64 @@ export const ProfileScreen: React.FC = () => {
 
       {/* PREFERENCES & APP CONTROLS */}
       <div className="bg-surface-container-lowest rounded-2xl border-2 border-on-background shadow-tactile overflow-hidden divide-y-2 divide-on-background/10">
+        {/* Restart Onboarding / Setup */}
+        <button
+          onClick={() => {
+            sound.playCuteTap();
+            openOnboarding();
+          }}
+          className="w-full p-3.5 flex items-center justify-between hover:bg-surface-container transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-xl text-primary">
+              tune
+            </span>
+            <div className="text-left">
+              <span className="font-headline text-xs font-bold text-on-background block">
+                Riavvia Setup / Guida Iniziale
+              </span>
+              <span className="font-body text-[10px] text-on-surface-variant">
+                Riconfigura mascotte, nickname e guida introduttiva
+              </span>
+            </div>
+          </div>
+          <span className="material-symbols-outlined text-lg text-on-surface-variant">
+            chevron_right
+          </span>
+        </button>
+
+        {/* Load Demo Pack */}
+        <button
+          onClick={() => {
+            sound.playCuteTap();
+            if (coupons.length > 0) {
+              if (window.confirm('Vuoi caricare i 5 coupon dimostrativi (Caffè, Pizza, Bus, Cinema, Abbraccio)?')) {
+                loadDemoCoupons();
+              }
+            } else {
+              loadDemoCoupons();
+            }
+          }}
+          className="w-full p-3.5 flex items-center justify-between hover:bg-surface-container transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-xl text-tertiary">
+              inventory_2
+            </span>
+            <div className="text-left">
+              <span className="font-headline text-xs font-bold text-on-background block">
+                Carica Pacchetto Demo (5 Coupon)
+              </span>
+              <span className="font-body text-[10px] text-on-surface-variant">
+                Aggiunge i coupon di test per esplorare l'app
+              </span>
+            </div>
+          </div>
+          <span className="material-symbols-outlined text-lg text-on-surface-variant">
+            chevron_right
+          </span>
+        </button>
+
         {/* Sound Toggle */}
         <button
           onClick={handleToggleSound}
@@ -426,10 +488,7 @@ export const ProfileScreen: React.FC = () => {
         <button
           onClick={() => {
             sound.playCuteTap();
-            const activeOnly = coupons.filter((c) => c.status === 'active');
-            localStorage.setItem('kupon_tickets_storage_v1', JSON.stringify(activeOnly));
-            useCouponStore.getState().loadCoupons();
-            showToast('🧹 Kupon riscattati e archiviati rimossi dalla cronologia!', 'info');
+            clearRedeemedCoupons();
           }}
           className="w-full p-3.5 flex items-center justify-between hover:bg-surface-container transition-colors"
         >
@@ -456,9 +515,7 @@ export const ProfileScreen: React.FC = () => {
           onClick={() => {
             if (window.confirm('Sei sicuro di voler svuotare il portafoglio? Questa azione cancellerà tutti i coupon salvati sul dispositivo.')) {
               sound.playCuteTap();
-              localStorage.removeItem('kupon_tickets_storage_v1');
-              useCouponStore.getState().loadCoupons();
-              showToast('🗑️ Portafoglio svuotato.', 'info');
+              clearAllCoupons();
             }
           }}
           className="w-full p-3.5 flex items-center justify-between hover:bg-error-container/40 transition-colors text-error"

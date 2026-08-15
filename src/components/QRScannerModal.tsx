@@ -4,6 +4,7 @@ import { fireRedemptionConfetti } from './Confetti';
 import { Coupon } from '../types/coupon';
 import { sound } from '../services/soundService';
 import { CameraQRScanner } from './CameraQRScanner';
+import { P2PSyncService } from '../services/p2pSyncService';
 
 interface QRScannerModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface QRScannerModalProps {
 
 export const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose }) => {
   const processScannedCode = useCouponStore((state) => state.processScannedCode);
+  const userProfile = useCouponStore((state) => state.userProfile);
   const [manualToken, setManualToken] = useState('');
   const [scannedResult, setScannedResult] = useState<{
     action: 'transferred' | 'redeemed';
@@ -23,6 +25,16 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose 
   const handleScanSuccess = (decodedText: string) => {
     const res = processScannedCode(decodedText);
     if (res.success && res.coupon) {
+      // Broadcast real-time confirmation to the sender's device
+      P2PSyncService.broadcastClaim({
+        action: res.action || 'redeemed',
+        token: res.coupon.qr_token,
+        couponId: res.coupon.id,
+        senderName: res.coupon.sender_id,
+        claimerName: userProfile.defaultSenderName || userProfile.name || 'Un amico',
+        timestamp: new Date().toISOString(),
+      });
+
       if (res.action === 'transferred') {
         sound.playCreateGift();
         setTimeout(() => sound.playSuccessChime(), 150);

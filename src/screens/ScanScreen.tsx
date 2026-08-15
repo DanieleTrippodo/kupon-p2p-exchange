@@ -5,10 +5,12 @@ import { fireRedemptionConfetti } from '../components/Confetti';
 import { Coupon } from '../types/coupon';
 import { sound } from '../services/soundService';
 import { CameraQRScanner } from '../components/CameraQRScanner';
+import { P2PSyncService } from '../services/p2pSyncService';
 
 export const ScanScreen: React.FC = () => {
   const processScannedCode = useCouponStore((state) => state.processScannedCode);
   const setActiveTab = useCouponStore((state) => state.setActiveTab);
+  const userProfile = useCouponStore((state) => state.userProfile);
   const [tokenInput, setTokenInput] = useState('');
   const [scannedResult, setScannedResult] = useState<{
     action: 'transferred' | 'redeemed';
@@ -19,6 +21,16 @@ export const ScanScreen: React.FC = () => {
     if (!decodedText.trim()) return;
     const res = processScannedCode(decodedText);
     if (res.success && res.coupon) {
+      // Broadcast real-time confirmation to the sender's device
+      P2PSyncService.broadcastClaim({
+        action: res.action || 'redeemed',
+        token: res.coupon.qr_token,
+        couponId: res.coupon.id,
+        senderName: res.coupon.sender_id,
+        claimerName: userProfile.defaultSenderName || userProfile.name || 'Un amico',
+        timestamp: new Date().toISOString(),
+      });
+
       if (res.action === 'transferred') {
         sound.playCreateGift();
         setTimeout(() => sound.playSuccessChime(), 150);

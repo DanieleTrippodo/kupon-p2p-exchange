@@ -9,12 +9,13 @@ export const CreateCouponScreen: React.FC = () => {
   const createCoupon = useCouponStore((state) => state.createCoupon);
   const openShareModal = useCouponStore((state) => state.openShareModal);
   const setActiveTab = useCouponStore((state) => state.setActiveTab);
+  const userProfile = useCouponStore((state) => state.userProfile);
 
   // Form State
   const [title, setTitle] = useState('Pizza Margherita & Birra');
   const [description, setDescription] = useState('Offerta da me da Bella Napoli questo weekend!');
   const [secretMessage, setSecretMessage] = useState('Pago io anche il dolce e limoncello finale! 🍋🍰');
-  const [recipient, setRecipient] = useState('Sarah');
+  const [recipient, setRecipient] = useState('');
   const [colorTheme, setColorTheme] = useState<ColorTheme>('peach');
   const [iconName, setIconName] = useState<string>('local_pizza');
 
@@ -47,7 +48,7 @@ export const CreateCouponScreen: React.FC = () => {
       recipient_id: recipient.trim() || 'Amico/a',
       color_theme: colorTheme,
       icon_name: iconName,
-      sender_id: 'You',
+      sender_id: userProfile.defaultSenderName || userProfile.name || 'You',
     });
 
     fireRedemptionConfetti();

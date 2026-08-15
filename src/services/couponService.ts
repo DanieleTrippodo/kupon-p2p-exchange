@@ -107,19 +107,62 @@ export const realtimeBus = new RealtimeEventBus();
  */
 export class CouponService {
   /**
+   * Check if user completed first run onboarding
+   */
+  public static hasCompletedSetup(): boolean {
+    try {
+      return localStorage.getItem('kupon_setup_completed_v1') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Set onboarding completed status
+   */
+  public static setSetupCompleted(completed: boolean): void {
+    try {
+      localStorage.setItem('kupon_setup_completed_v1', completed ? 'true' : 'false');
+    } catch {
+      // ignore
+    }
+  }
+
+  /**
+   * Create a welcome coupon specifically customized for the new user
+   */
+  public static createWelcomeCoupon(userName: string): Coupon {
+    return {
+      id: 'kpn-welcome-01',
+      sender_id: 'Kupon Team 🎟️',
+      recipient_id: userName || 'Te',
+      title: 'Kupon di Benvenuto ✨',
+      description: 'Benvenuto su Kupon! Prova a cliccare "Riscatta" per scoprire il messaggio segreto!',
+      icon_name: 'auto_awesome',
+      color_theme: 'peach',
+      qr_token: 'kpn_tok_welcome_9901',
+      status: 'active',
+      secret_message: 'Congratulazioni per aver completato la configurazione iniziale! Ora puoi creare, regalare e scambiare coupon reali con amici e familiari! 🎉🍕☕',
+      created_at: new Date().toISOString(),
+      redeemed_at: null,
+    };
+  }
+
+  /**
    * Fetch all coupons from storage or seed defaults
    */
   public static getCoupons(): Coupon[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
+      if (stored !== null) {
         return JSON.parse(stored);
       }
     } catch {
-      // LocalStorage not available, fallback to in-memory seed
+      // LocalStorage not available
     }
-    this.saveCoupons(SEED_COUPONS);
-    return SEED_COUPONS;
+
+    // Default to empty array if no storage exists
+    return [];
   }
 
   /**
@@ -229,52 +272,78 @@ export class CouponService {
   }
 
   /**
-   * Redeem a coupon atomically by token or ID
+   * Redeem a coupon atomically by token or ID (supports both local wallet and peer-presented coupons)
    */
   public static redeemByToken(tokenOrId: string): RedemptionResult {
-    const { token, couponId } = QRService.parseScannedData(tokenOrId);
+    const parsed = QRService.parseScannedData(tokenOrId);
+    const { token, couponId } = parsed;
     const coupons = this.getCoupons();
 
-    // Find by QR token or by direct coupon ID match
+    // 1. Check if the coupon exists in our local wallet
     const target = coupons.find(
       (c) => c.qr_token === token || c.id === token || (couponId && c.id === couponId)
     );
 
-    if (!target) {
+    if (target) {
+      if (target.status === 'redeemed') {
+        return {
+          success: false,
+          coupon: target,
+          message: `Il Kupon "${target.title}" è già stato strappato e riscattato alle ${new Date(
+            target.redeemed_at || ''
+          ).toLocaleTimeString()}!`,
+          errorCode: 'ALREADY_REDEEMED',
+        };
+      }
+
+      // Atomic update in local wallet
+      const updatedCoupon: Coupon = {
+        ...target,
+        status: 'redeemed',
+        redeemed_at: new Date().toISOString(),
+      };
+
+      const updatedList = coupons.map((c) => (c.id === target.id ? updatedCoupon : c));
+      this.saveCoupons(updatedList);
+      realtimeBus.emit('REDEEMED', updatedCoupon);
+
       return {
-        success: false,
-        message: 'Kupon non trovato! Verifica il codice QR o il token ID.',
-        errorCode: 'NOT_FOUND',
+        success: true,
+        action: 'redeemed',
+        coupon: updatedCoupon,
+        message: `🎉 Biglietto strappato! "${updatedCoupon.title}" riscattato con successo!`,
       };
     }
 
-    if (target.status === 'redeemed') {
+    // 2. PEER REDEMPTION: The coupon is presented by a friend to you to validate/honor
+    if (parsed.fullCouponData && parsed.fullCouponData.title) {
+      const peerCoupon: Coupon = {
+        id: parsed.couponId || `kpn-${Date.now().toString(36)}`,
+        title: parsed.fullCouponData.title || 'Kupon',
+        description: parsed.fullCouponData.description || '',
+        icon_name: parsed.fullCouponData.icon_name || 'redeem',
+        color_theme: parsed.fullCouponData.color_theme || 'peach',
+        sender_id: parsed.fullCouponData.sender_id || 'Amico',
+        recipient_id: 'You',
+        secret_message: parsed.fullCouponData.secret_message,
+        qr_token: parsed.token,
+        status: 'redeemed',
+        created_at: parsed.fullCouponData.created_at || new Date().toISOString(),
+        redeemed_at: new Date().toISOString(),
+      };
+
       return {
-        success: false,
-        coupon: target,
-        message: `Il Kupon "${target.title}" è già stato strappato e riscattato alle ${new Date(
-          target.redeemed_at || ''
-        ).toLocaleTimeString()}!`,
-        errorCode: 'ALREADY_REDEEMED',
+        success: true,
+        action: 'redeemed',
+        coupon: peerCoupon,
+        message: `🎉 Biglietto convalidato! "${peerCoupon.title}" riscattato con successo!`,
       };
     }
-
-    // Atomic update
-    const updatedCoupon: Coupon = {
-      ...target,
-      status: 'redeemed',
-      redeemed_at: new Date().toISOString(),
-    };
-
-    const updatedList = coupons.map((c) => (c.id === target.id ? updatedCoupon : c));
-    this.saveCoupons(updatedList);
-    realtimeBus.emit('REDEEMED', updatedCoupon);
 
     return {
-      success: true,
-      action: 'redeemed',
-      coupon: updatedCoupon,
-      message: `🎉 Biglietto strappato! "${updatedCoupon.title}" riscattato con successo!`,
+      success: false,
+      message: 'Kupon non trovato! Verifica il codice QR o il token ID.',
+      errorCode: 'NOT_FOUND',
     };
   }
 
@@ -285,5 +354,23 @@ export class CouponService {
     this.saveCoupons(SEED_COUPONS);
     realtimeBus.emit('RESET');
     return SEED_COUPONS;
+  }
+
+  /**
+   * Clear all coupons from wallet
+   */
+  public static clearWallet(): void {
+    this.saveCoupons([]);
+    realtimeBus.emit('RESET');
+  }
+
+  /**
+   * Clear only redeemed coupons
+   */
+  public static clearRedeemed(): void {
+    const coupons = this.getCoupons();
+    const active = coupons.filter((c) => c.status === 'active');
+    this.saveCoupons(active);
+    realtimeBus.emit('RESET');
   }
 }
