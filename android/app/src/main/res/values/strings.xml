@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kupon</string>
+    <string name="title_activity_main">Kupon</string>
+    <string name="package_name">com.kupon.p2pexchange</string>
+    <string name="custom_url_scheme">com.kupon.p2pexchange</string>
+</resources>

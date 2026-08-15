@@ -1,0 +1,13 @@
+{
+  "appId": "com.kupon.p2pexchange",
+  "appName": "Kupon",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#FFF8F6",
+    "allowMixedContent": true
+  }
+}
