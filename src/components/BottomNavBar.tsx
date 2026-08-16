@@ -6,6 +6,7 @@ export const BottomNavBar: React.FC = () => {
   const activeTab = useCouponStore((state) => state.activeTab);
   const setActiveTab = useCouponStore((state) => state.setActiveTab);
   const openScanner = useCouponStore((state) => state.openScanner);
+  const progression = useCouponStore((state) => state.progression);
 
   const handleTabClick = (tab: typeof activeTab) => {
     sound.playCuteTap();
@@ -65,22 +66,29 @@ export const BottomNavBar: React.FC = () => {
         </span>
       </button>
 
-      {/* Deals / Explore Tab */}
+      {/* Stickers Pokédex Tab */}
       <button
-        onClick={() => handleTabClick('deals')}
-        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${
-          activeTab === 'deals'
+        onClick={() => handleTabClick('stickers')}
+        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all relative ${
+          activeTab === 'stickers'
             ? 'bg-tertiary-container text-on-tertiary-container font-bold shadow-tactile-sm'
             : 'text-on-surface-variant hover:bg-secondary-container'
         }`}
       >
+        {/* Unopened pack indicator badge */}
+        {progression.unopenedPacks > 0 && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-white text-[9px] font-extrabold flex items-center justify-center border border-on-background shadow-tactile-sm animate-bounce">
+            {progression.unopenedPacks}
+          </span>
+        )}
+
         <span
           className="material-symbols-outlined text-2xl"
-          style={{ fontVariationSettings: activeTab === 'deals' ? '"FILL" 1' : '"FILL" 0' }}
+          style={{ fontVariationSettings: activeTab === 'stickers' ? '"FILL" 1' : '"FILL" 0' }}
         >
-          local_offer
+          auto_awesome
         </span>
-        <span className="font-headline text-[11px] mt-0.5 font-bold">Deals</span>
+        <span className="font-headline text-[11px] mt-0.5 font-bold">Stickers</span>
       </button>
 
       {/* Profile Tab */}

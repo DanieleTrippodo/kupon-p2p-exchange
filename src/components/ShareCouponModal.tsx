@@ -3,6 +3,8 @@ import { Coupon, ColorTheme } from '../types/coupon';
 import { THEME_CLASSES } from '../theme/tokens';
 import { sound } from '../services/soundService';
 
+import { useCouponStore } from '../store/couponStore';
+
 interface ShareCouponModalProps {
   coupon: Coupon | null;
   onClose: () => void;
@@ -16,6 +18,7 @@ export const ShareCouponModal: React.FC<ShareCouponModalProps> = ({
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const rewardShareAction = useCouponStore((state) => state.rewardShareAction);
 
   if (!coupon) return null;
 
@@ -34,6 +37,7 @@ export const ShareCouponModal: React.FC<ShareCouponModalProps> = ({
       token: coupon.qr_token,
       sender: coupon.sender_id || 'Un tuo amico',
       secret: coupon.secret_message || '',
+      appliedStickers: coupon.appliedStickers,
     })
   );
   const shareUrl = `${currentOrigin}/?gift=${encodedGift}`;
@@ -45,6 +49,7 @@ export const ShareCouponModal: React.FC<ShareCouponModalProps> = ({
   // Native Web Share API
   const handleNativeShare = async () => {
     sound.playCuteTap();
+    rewardShareAction();
     if (navigator.share) {
       try {
         await navigator.share({
@@ -63,6 +68,7 @@ export const ShareCouponModal: React.FC<ShareCouponModalProps> = ({
   // WhatsApp Share
   const handleWhatsAppShare = () => {
     sound.playCuteTap();
+    rewardShareAction();
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(waUrl, '_blank');
   };
@@ -70,6 +76,7 @@ export const ShareCouponModal: React.FC<ShareCouponModalProps> = ({
   // Telegram Share
   const handleTelegramShare = () => {
     sound.playCuteTap();
+    rewardShareAction();
     const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(
       `🎁 Ho un Kupon regalo per te: "${coupon.title}"!`
     )}`;
@@ -79,6 +86,7 @@ export const ShareCouponModal: React.FC<ShareCouponModalProps> = ({
   // Copy Link
   const handleCopyLink = () => {
     sound.playCuteTap();
+    rewardShareAction();
     navigator.clipboard.writeText(shareUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);

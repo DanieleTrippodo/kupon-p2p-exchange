@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import { Coupon, CreateCouponInput, RedemptionResult, TabType, QRModalMode, UserProfile } from '../types/coupon';
 import { CouponService, realtimeBus } from '../services/couponService';
+import { StickerService } from '../services/stickerService';
+import { StickerInventoryState, StickerPackResult, StickerProgression } from '../types/sticker';
 import { MASCOT } from '../theme/tokens';
+import { sound } from '../services/soundService';
+import { fireRedemptionConfetti } from '../components/Confetti';
 
 const USER_PROFILE_STORAGE_KEY = 'kupon_user_profile_v1';
 
@@ -41,6 +45,11 @@ interface CouponState {
   isScannerOpen: boolean;
   filterStatus: 'all' | 'active' | 'redeemed';
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
+
+  // Stickers & Loot State
+  stickerInventory: StickerInventoryState;
+  progression: StickerProgression;
+  lastOpenedPackResult: StickerPackResult | null;
   
   // Navigation & UI Actions
   setActiveTab: (tab: TabType) => void;
@@ -70,6 +79,14 @@ interface CouponState {
   redeemCoupon: (tokenOrId: string) => RedemptionResult;
   removeCoupon: (couponId: string) => void;
   resetCoupons: () => void;
+
+  // Sticker & Loot Actions
+  refreshStickerState: () => void;
+  openStickerPack: () => StickerPackResult | null;
+  clearLastPackResult: () => void;
+  grantBonusPacks: (count: number, reason?: string) => void;
+  rewardShareAction: () => void;
+  resetStickerBook: () => void;
 }
 
 export const useCouponStore = create<CouponState>((set, get) => {
@@ -92,6 +109,11 @@ export const useCouponStore = create<CouponState>((set, get) => {
     isScannerOpen: false,
     filterStatus: 'all',
     toast: null,
+
+    // Stickers initial state
+    stickerInventory: StickerService.getInventory(),
+    progression: StickerService.getProgression(),
+    lastOpenedPackResult: null,
 
     setActiveTab: (tab) => set({ activeTab: tab }),
     setFilterStatus: (filterStatus) => set({ filterStatus }),
@@ -174,7 +196,11 @@ export const useCouponStore = create<CouponState>((set, get) => {
     hideToast: () => set({ toast: null }),
 
     loadCoupons: () => {
-      set({ coupons: CouponService.getCoupons() });
+      set({
+        coupons: CouponService.getCoupons(),
+        stickerInventory: StickerService.getInventory(),
+        progression: StickerService.getProgression(),
+      });
     },
 
     loadDemoCoupons: () => {
@@ -196,10 +222,17 @@ export const useCouponStore = create<CouponState>((set, get) => {
     },
 
     createCoupon: (input) => {
+      // 1. Consume stickers if applied
+      if (input.appliedStickers && input.appliedStickers.length > 0) {
+        const updatedInventory = StickerService.consumeStickers(input.appliedStickers);
+        set({ stickerInventory: updatedInventory });
+      }
+
       const newCoupon = CouponService.createCoupon({
         ...input,
         sender_id: input.sender_id || get().userProfile.defaultSenderName || get().userProfile.name || 'You',
       });
+      
       set({ coupons: CouponService.getCoupons(), activeTab: 'wallet' });
       get().showToast(`✨ Creato "${newCoupon.title}"!`, 'success');
       return newCoupon;
@@ -209,7 +242,26 @@ export const useCouponStore = create<CouponState>((set, get) => {
       const result = CouponService.processScannedCode(rawScannedText);
       if (result.success) {
         set({ coupons: CouponService.getCoupons() });
-        get().showToast(result.message, 'success');
+
+        // If coupon was redeemed, trigger level-up and award booster pack!
+        if (result.action === 'redeemed') {
+          const { progression, leveledUp, packsAwarded } = StickerService.onCouponRedeemed();
+          set({ progression });
+
+          sound.playPaperTear();
+          setTimeout(() => sound.playSuccessChime(), 350);
+          fireRedemptionConfetti();
+
+          if (leveledUp) {
+            setTimeout(() => {
+              get().showToast(`🌟 LEVEL UP! Sei salito al Livello ${progression.level}! +${packsAwarded} Bustina Sticker sbloccata! 🎁`, 'success');
+            }, 1000);
+          } else {
+            get().showToast(result.message, 'success');
+          }
+        } else {
+          get().showToast(result.message, 'success');
+        }
       } else {
         get().showToast(result.message, 'error');
       }
@@ -230,6 +282,54 @@ export const useCouponStore = create<CouponState>((set, get) => {
       const initial = CouponService.resetToSeed();
       set({ coupons: initial });
       get().showToast('🔄 Portafoglio ripristinato ai ticket demo.', 'info');
+    },
+
+    // STICKER & LOOT STORE ACTIONS
+    refreshStickerState: () => {
+      set({
+        stickerInventory: StickerService.getInventory(),
+        progression: StickerService.getProgression(),
+      });
+    },
+
+    openStickerPack: () => {
+      const result = StickerService.openPack();
+      if (result) {
+        set({
+          stickerInventory: StickerService.getInventory(),
+          progression: StickerService.getProgression(),
+          lastOpenedPackResult: result,
+        });
+      }
+      return result;
+    },
+
+    clearLastPackResult: () => {
+      set({ lastOpenedPackResult: null });
+    },
+
+    grantBonusPacks: (count: number, reason: string = 'Premio speciale') => {
+      const updated = StickerService.grantPacks(count);
+      set({ progression: updated });
+      get().showToast(`🎁 +${count} Pacchetto Misterioso aggiunto! (${reason})`, 'success');
+    },
+
+    rewardShareAction: () => {
+      const updated = StickerService.onCouponShared();
+      set({ progression: updated });
+      sound.playCreateGift();
+      get().showToast('🎁 Fantastico! +1 Pacchetto Misterioso ricevuto per aver condiviso un Kupon!', 'success');
+    },
+
+    resetStickerBook: () => {
+      const { inventory, progression } = StickerService.resetStickerBook();
+      set({
+        stickerInventory: inventory,
+        progression: progression,
+        lastOpenedPackResult: null,
+      });
+      sound.playPaperTear();
+      get().showToast('✨ StickerBook e inventario azzerati con successo! +1 Bustina pronta da aprire!', 'info');
     },
   };
 });

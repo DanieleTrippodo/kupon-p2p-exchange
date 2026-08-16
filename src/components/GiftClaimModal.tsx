@@ -32,6 +32,7 @@ export const GiftClaimModal: React.FC = () => {
             sender_id: parsed.sender || 'Un amico',
             recipient_id: 'You',
             secret_message: parsed.secret,
+            appliedStickers: parsed.appliedStickers,
             qr_token: parsed.token,
           });
         }
@@ -58,6 +59,7 @@ export const GiftClaimModal: React.FC = () => {
       recipient_id: 'You',
       sender_id: incomingGift.sender_id || 'Amico',
       secret_message: incomingGift.secret_message,
+      appliedStickers: incomingGift.appliedStickers,
     });
 
     fireRedemptionConfetti();

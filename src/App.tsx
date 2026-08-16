@@ -10,7 +10,7 @@ import { OnboardingModal } from './components/OnboardingModal';
 import { HomeScreen } from './screens/HomeScreen';
 import { CreateCouponScreen } from './screens/CreateCouponScreen';
 import { ScanScreen } from './screens/ScanScreen';
-import { DealsScreen } from './screens/DealsScreen';
+import { StickersScreen } from './screens/StickersScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 
 export const App: React.FC = () => {
@@ -44,7 +44,7 @@ export const App: React.FC = () => {
         {activeTab === 'wallet' && <HomeScreen />}
         {activeTab === 'create' && <CreateCouponScreen />}
         {activeTab === 'scan' && <ScanScreen />}
-        {activeTab === 'deals' && <DealsScreen />}
+        {activeTab === 'stickers' && <StickersScreen />}
         {activeTab === 'profile' && <ProfileScreen />}
       </main>
 

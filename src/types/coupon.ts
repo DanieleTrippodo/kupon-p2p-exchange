@@ -1,3 +1,5 @@
+import { AppliedSticker } from './sticker';
+
 export type CouponStatus = 'active' | 'redeemed';
 
 export type ColorTheme = 'peach' | 'matcha' | 'butter' | 'lilac';
@@ -17,6 +19,7 @@ export interface Coupon {
   qr_token: string; // single-use validation payload: e.g. "kpn_tok_..."
   status: CouponStatus;
   secret_message?: string; // Secret message revealed only after redemption!
+  appliedStickers?: AppliedSticker[]; // Decorated stickers placed by user
   created_at: string; // ISO timestamp
   redeemed_at: string | null; // ISO timestamp or null
 }
@@ -29,6 +32,7 @@ export interface CreateCouponInput {
   recipient_id: string;
   sender_id?: string;
   secret_message?: string;
+  appliedStickers?: AppliedSticker[];
 }
 
 export interface QRPayload {
@@ -44,6 +48,7 @@ export interface QRPayload {
   sender?: string;
   recipient?: string;
   secret_message?: string;
+  appliedStickers?: AppliedSticker[];
   timestamp: string;
 }
 
@@ -65,6 +70,7 @@ export interface UserProfile {
   soundEnabled: boolean;
 }
 
-export type TabType = 'wallet' | 'create' | 'scan' | 'deals' | 'profile';
+export type TabType = 'wallet' | 'create' | 'scan' | 'stickers' | 'profile';
+
 
 

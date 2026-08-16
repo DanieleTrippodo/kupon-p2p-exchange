@@ -32,6 +32,7 @@ export class QRService {
       sender: coupon.sender_id || 'You',
       recipient: coupon.recipient_id || 'Friend',
       secret_message: coupon.secret_message,
+      appliedStickers: coupon.appliedStickers,
       timestamp: coupon.created_at,
     };
     return JSON.stringify(payload);
@@ -54,6 +55,7 @@ export class QRService {
       sender: coupon.sender_id,
       recipient: coupon.recipient_id,
       secret_message: coupon.secret_message,
+      appliedStickers: coupon.appliedStickers,
       timestamp: coupon.created_at,
     };
     return JSON.stringify(payload);
@@ -96,6 +98,7 @@ export class QRService {
                 sender_id: parsed.sender || 'Un amico',
                 recipient_id: parsed.recipient || 'You',
                 secret_message: parsed.secret_message,
+                appliedStickers: parsed.appliedStickers,
                 qr_token: parsed.token,
                 status: 'active',
                 created_at: parsed.timestamp || new Date().toISOString(),
@@ -118,6 +121,7 @@ export class QRService {
               sender_id: parsed.sender || 'Un amico',
               recipient_id: parsed.recipient || 'You',
               secret_message: parsed.secret_message,
+              appliedStickers: parsed.appliedStickers,
               qr_token: parsed.token,
               status: 'redeemed',
               created_at: parsed.timestamp || new Date().toISOString(),

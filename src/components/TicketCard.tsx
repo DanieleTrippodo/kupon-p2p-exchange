@@ -1,6 +1,7 @@
 import React from 'react';
 import { THEME_CLASSES } from '../theme/tokens';
 import { CouponWithCleanup } from '../hooks/useCoupons';
+import { StickerSvg } from './StickerSvg';
 
 interface TicketCardProps {
   coupon: CouponWithCleanup;
@@ -31,6 +32,27 @@ export const TicketCard: React.FC<TicketCardProps> = ({
       <div
         className={`relative flex-1 ${theme.bg} rounded-l-[14px] border-r-0 flex items-center p-3.5 md:p-4 overflow-hidden select-none`}
       >
+        {/* Applied Stickers Layer */}
+        {coupon.appliedStickers && coupon.appliedStickers.length > 0 && (
+          <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+            {coupon.appliedStickers.map((app) => {
+              return (
+                <div
+                  key={app.id}
+                  style={{
+                    left: `${app.x}%`,
+                    top: `${app.y}%`,
+                    transform: `translate(-50%, -50%) rotate(${app.rotation}deg) scale(${app.scale})`,
+                  }}
+                  className="absolute pointer-events-none select-none w-11 h-11 md:w-13 md:h-13"
+                >
+                  <StickerSvg id={app.stickerId} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Decorative Background Watermark Icon */}
         <span
           className="material-symbols-outlined absolute -bottom-4 -right-4 text-7xl md:text-8xl opacity-20 pointer-events-none rotate-12 select-none"

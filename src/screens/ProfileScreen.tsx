@@ -5,19 +5,24 @@ import { useCouponStore } from '../store/couponStore';
 import { AVATARS, THEME_CLASSES } from '../theme/tokens';
 import { sound } from '../services/soundService';
 import { fireRedemptionConfetti } from '../components/Confetti';
+import { StickerService } from '../services/stickerService';
 
 export const ProfileScreen: React.FC = () => {
   const { activeCount, redeemedCount } = useCoupons();
   const coupons = useCouponStore((state) => state.coupons);
   const userProfile = useCouponStore((state) => state.userProfile);
+  const progression = useCouponStore((state) => state.progression);
   const updateUserProfile = useCouponStore((state) => state.updateUserProfile);
   const showToast = useCouponStore((state) => state.showToast);
   const openOnboarding = useCouponStore((state) => state.openOnboarding);
   const loadDemoCoupons = useCouponStore((state) => state.loadDemoCoupons);
   const clearAllCoupons = useCouponStore((state) => state.clearAllCoupons);
   const clearRedeemedCoupons = useCouponStore((state) => state.clearRedeemedCoupons);
+  const albumStats = StickerService.getAlbumStats();
 
   // Edit Mode state
+  const resetStickerBook = useCouponStore((state) => state.resetStickerBook);
+
   const [isEditing, setIsEditing] = useState(false);
 
   // Form state
@@ -319,11 +324,11 @@ export const ProfileScreen: React.FC = () => {
                 {userProfile.handle}
               </p>
 
-              <span className="inline-flex items-center gap-1 bg-surface-container-lowest/80 text-on-background px-2.5 py-0.5 rounded-full border border-on-background/20 text-[10px] font-headline font-bold mt-1.5">
+              <span className="inline-flex items-center gap-1 bg-surface-container-lowest/90 text-on-background px-2.5 py-0.5 rounded-full border border-on-background/20 text-[10px] font-headline font-bold mt-1.5 shadow-tactile-sm">
                 <span className="material-symbols-outlined text-[13px] text-primary">
                   workspace_premium
                 </span>
-                <span>Livello: Gifter Generoso ⭐</span>
+                <span>Livello {progression.level} ⭐ ({progression.xp}/{progression.xpToNextLevel} XP)</span>
               </span>
             </div>
           </div>
@@ -336,6 +341,32 @@ export const ProfileScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* STICKERBOOK & LOOT SUMMARY CARD */}
+      <div className="p-4 bg-surface-container-lowest rounded-2xl border-2 border-on-background shadow-tactile flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-400 to-amber-300 border-2 border-on-background flex items-center justify-center text-2xl shadow-tactile-sm shrink-0">
+            📖
+          </div>
+          <div>
+            <span className="font-headline text-xs font-extrabold text-on-background block">
+              Album StickerBook
+            </span>
+            <span className="font-body text-[11px] text-on-surface-variant">
+              {albumStats.discovered} / {albumStats.total} sbloccati ({albumStats.percentage}%) • {progression.unopenedPacks} bustine
+            </span>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <span className="font-headline text-sm font-extrabold text-primary block">
+            {albumStats.totalAvailableCopies}
+          </span>
+          <span className="font-headline text-[9px] font-bold text-on-surface-variant uppercase">
+            Nello Zaino
+          </span>
+        </div>
+      </div>
 
       {/* WALLET ACTIVITY SCOREBOARD */}
       <div className="grid grid-cols-3 gap-2.5">
@@ -478,6 +509,38 @@ export const ProfileScreen: React.FC = () => {
             <span className="font-headline text-xs font-bold text-on-background">
               Esporta Backup Portafoglio (JSON)
             </span>
+          </div>
+          <span className="material-symbols-outlined text-lg text-on-surface-variant">
+            chevron_right
+          </span>
+        </button>
+
+        {/* Reset StickerBook & Inventario */}
+        <button
+          onClick={() => {
+            if (
+              window.confirm(
+                'Sei sicuro di voler azzerare lo StickerBook? Questa azione resetterà tutte le scoperte e svuoterà l\'inventario degli sticker.'
+              )
+            ) {
+              sound.playCuteTap();
+              resetStickerBook();
+            }
+          }}
+          className="w-full p-3.5 flex items-center justify-between hover:bg-amber-100/50 transition-colors text-amber-900 border-b border-on-background/10"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-xl text-amber-700">
+              restart_alt
+            </span>
+            <div className="text-left">
+              <span className="font-headline text-xs font-bold block">
+                Azzera Collezione StickerBook
+              </span>
+              <span className="font-body text-[10px] text-on-surface-variant">
+                Cancella tutti gli sticker collezionati e le scoperte dell'album
+              </span>
+            </div>
           </div>
           <span className="material-symbols-outlined text-lg text-on-surface-variant">
             chevron_right

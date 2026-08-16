@@ -81,4 +81,54 @@ if (filtered.length !== 2 || filtered.some((c) => c.id === 'c3')) {
   throw new Error('2-Hour cleanup filter failed to prune expired redeemed coupon');
 }
 
-console.log('✅ ALL CORE LOGIC & LIFECYCLE TESTS PASSED PERFECTLY!');
+// Test 6: Sticker Loot & Booster Pack Logic
+import { StickerService } from '../src/services/stickerService';
+import { STICKERS_CATALOG } from '../src/data/stickersCatalog';
+
+// Mock localStorage for node test environment
+const mockStorage: Record<string, string> = {};
+globalThis.localStorage = {
+  getItem: (key: string) => mockStorage[key] || null,
+  setItem: (key: string, val: string) => { mockStorage[key] = val; },
+  removeItem: (key: string) => { delete mockStorage[key]; },
+  clear: () => { Object.keys(mockStorage).forEach(k => delete mockStorage[k]); },
+  length: 0,
+  key: () => null,
+} as unknown as Storage;
+
+const packResult = StickerService.openPack();
+console.log('6. Opened Starter Pack:', packResult ? `${packResult.stickers.length} stickers drawn` : 'failed');
+if (!packResult || packResult.stickers.length !== 3) {
+  throw new Error('Expected booster pack to contain exactly 3 stickers');
+}
+
+const stats = StickerService.getAlbumStats();
+console.log('7. Album StickerBook Stats after 1 pack:', `${stats.discovered}/${stats.total} discovered (${stats.percentage}%)`);
+if (stats.discovered < 1 || stats.total !== STICKERS_CATALOG.length) {
+  throw new Error('StickerBook album stats calculation error');
+}
+
+// Test 8: Redeem Level-Up and Bonus Pack Award
+const redeemLevelUp = StickerService.onCouponRedeemed();
+console.log('8. Level Up on Redeem:', `New level ${redeemLevelUp.progression.level}, Packs awarded: ${redeemLevelUp.packsAwarded}`);
+if (!redeemLevelUp.leveledUp || redeemLevelUp.progression.level < 2) {
+  throw new Error('Expected level up on coupon redeem');
+}
+
+// Test 9: Share Bonus Pack Award
+const shareProg = StickerService.onCouponShared();
+console.log('9. Bonus Pack on Share:', `Unopened packs: ${shareProg.unopenedPacks}`);
+if (shareProg.sharedCount < 1) {
+  throw new Error('Expected sharedCount to increment');
+}
+
+// Test 10: Reset StickerBook and Inventory
+const resetRes = StickerService.resetStickerBook();
+const statsAfterReset = StickerService.getAlbumStats();
+console.log('10. Reset StickerBook Test: Discovered count:', statsAfterReset.discovered, 'Unopened packs:', resetRes.progression.unopenedPacks);
+if (statsAfterReset.discovered !== 0 || resetRes.progression.unopenedPacks !== 1) {
+  throw new Error('Expected resetStickerBook to clear all discoveries and reset to 1 pack');
+}
+
+console.log('✅ ALL CORE LOGIC, STICKER LOOT, AND LIFECYCLE TESTS PASSED PERFECTLY!');
+

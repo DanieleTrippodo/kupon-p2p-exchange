@@ -195,6 +195,7 @@ export class CouponService {
       qr_token,
       status: 'active',
       secret_message: input.secret_message?.trim() || undefined,
+      appliedStickers: input.appliedStickers,
       created_at: new Date().toISOString(),
       redeemed_at: null,
     };
@@ -239,6 +240,7 @@ export class CouponService {
         sender_id: giftData.sender_id || 'Un amico',
         recipient_id: 'You',
         secret_message: giftData.secret_message,
+        appliedStickers: giftData.appliedStickers,
         qr_token: giftData.qr_token || parsed.token,
         status: 'active',
         created_at: giftData.created_at || new Date().toISOString(),
@@ -326,6 +328,7 @@ export class CouponService {
         sender_id: parsed.fullCouponData.sender_id || 'Amico',
         recipient_id: 'You',
         secret_message: parsed.fullCouponData.secret_message,
+        appliedStickers: parsed.fullCouponData.appliedStickers,
         qr_token: parsed.token,
         status: 'redeemed',
         created_at: parsed.fullCouponData.created_at || new Date().toISOString(),

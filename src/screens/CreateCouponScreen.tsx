@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ColorTheme } from '../types/coupon';
+import { AppliedSticker } from '../types/sticker';
 import { useCouponStore } from '../store/couponStore';
 import { ICON_CATEGORIES, THEME_CLASSES } from '../theme/tokens';
 import { fireRedemptionConfetti } from '../components/Confetti';
 import { sound } from '../services/soundService';
+import { StickerDecorator } from '../components/StickerDecorator';
 
 export const CreateCouponScreen: React.FC = () => {
   const createCoupon = useCouponStore((state) => state.createCoupon);
@@ -18,6 +20,7 @@ export const CreateCouponScreen: React.FC = () => {
   const [recipient, setRecipient] = useState('');
   const [colorTheme, setColorTheme] = useState<ColorTheme>('peach');
   const [iconName, setIconName] = useState<string>('local_pizza');
+  const [appliedStickers, setAppliedStickers] = useState<AppliedSticker[]>([]);
 
   // Icon category / search state
   const [selectedCategory, setSelectedCategory] = useState<string>(ICON_CATEGORIES[0].name);
@@ -49,6 +52,7 @@ export const CreateCouponScreen: React.FC = () => {
       color_theme: colorTheme,
       icon_name: iconName,
       sender_id: userProfile.defaultSenderName || userProfile.name || 'You',
+      appliedStickers: appliedStickers.length > 0 ? appliedStickers : undefined,
     });
 
     fireRedemptionConfetti();
@@ -64,76 +68,81 @@ export const CreateCouponScreen: React.FC = () => {
           Crea Kupon Personalizzato
         </h2>
         <p className="font-body text-xs text-on-surface-variant">
-          Personalizza ogni dettaglio: icona, palette, commenti e messaggio segreto
+          Personalizza ogni dettaglio: icona, palette, messaggi e applica i tuoi sticker preferiti!
         </p>
       </div>
 
-      {/* Live Preview Ticket Section */}
+      {/* Live Preview Ticket Section with Interactive Sticker Decorator */}
       <section className="flex flex-col items-center">
         <div className="w-full flex justify-between items-center mb-1.5 px-1">
           <span className="font-headline text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
-            Anteprima Biglietto
+            Anteprima Biglietto & Decorazione
           </span>
           <span className="font-headline text-[10px] font-bold text-primary bg-primary-container/60 px-2 py-0.5 rounded-full border border-on-background/20">
             Live Preview
           </span>
         </div>
 
-        <div className="w-full bg-surface-container-lowest rounded-2xl border-2 border-on-background shadow-tactile overflow-hidden transition-all duration-200">
-          {/* Top Section */}
-          <div
-            className={`p-4 ${activeTheme.bg} flex flex-col items-center gap-1.5 relative transition-colors duration-200`}
-          >
-            {/* Center Icon Badge */}
-            <div className="w-16 h-16 rounded-full border-2 border-on-background bg-surface-container-lowest p-1 shadow-tactile-sm flex items-center justify-center -mt-2">
-              <span className="material-symbols-outlined text-3xl text-on-background">
-                {iconName}
-              </span>
-            </div>
-
-            <div className="text-center w-full px-2 mt-1">
-              <h3 className="font-headline text-xl font-extrabold text-on-background truncate">
-                {title || 'Nome del Kupon'}
-              </h3>
-              <p className="font-body text-xs text-on-surface-variant truncate mt-0.5">
-                {description || 'Descrizione o commento...'}
-              </p>
-            </div>
-
-            {/* Secret Message Preview Tag (Hidden state) */}
-            {secretMessage && (
-              <div className="mt-1 inline-flex items-center gap-1.5 bg-surface-container-lowest/90 text-on-background px-3 py-1 rounded-full border border-on-background/30 text-[11px] font-headline font-bold shadow-tactile-sm">
-                <span className="material-symbols-outlined text-[14px] text-primary">
-                  lock
-                </span>
-                <span>Messaggio Segreto:</span>
-                <span className="italic font-mono text-on-surface-variant blur-[2px] hover:blur-none transition-all select-none">
-                  {secretMessage}
+        <StickerDecorator
+          appliedStickers={appliedStickers}
+          onChange={setAppliedStickers}
+        >
+          <div className="w-full bg-surface-container-lowest rounded-2xl border-2 border-on-background shadow-tactile overflow-hidden transition-all duration-200">
+            {/* Top Section */}
+            <div
+              className={`p-4 ${activeTheme.bg} flex flex-col items-center gap-1.5 relative transition-colors duration-200`}
+            >
+              {/* Center Icon Badge */}
+              <div className="w-16 h-16 rounded-full border-2 border-on-background bg-surface-container-lowest p-1 shadow-tactile-sm flex items-center justify-center -mt-2">
+                <span className="material-symbols-outlined text-3xl text-on-background">
+                  {iconName}
                 </span>
               </div>
-            )}
-          </div>
 
-          {/* Perforation Line with Punch Holes */}
-          <div className="relative w-full h-3 bg-surface-container-lowest flex items-center justify-center">
-            <div className="absolute -left-2.5 w-5 h-5 bg-background border-r-2 border-on-background rounded-full" />
-            <div className="w-[88%] border-t-2 border-dashed border-on-background opacity-60" />
-            <div className="absolute -right-2.5 w-5 h-5 bg-background border-l-2 border-on-background rounded-full" />
-          </div>
+              <div className="text-center w-full px-2 mt-1">
+                <h3 className="font-headline text-xl font-extrabold text-on-background truncate">
+                  {title || 'Nome del Kupon'}
+                </h3>
+                <p className="font-body text-xs text-on-surface-variant truncate mt-0.5">
+                  {description || 'Descrizione o commento...'}
+                </p>
+              </div>
 
-          {/* Bottom Section */}
-          <div className="p-3 bg-surface-container-lowest flex justify-between items-center px-4">
-            <div className="flex items-center gap-1.5 text-primary font-headline text-xs font-bold">
-              <span className="material-symbols-outlined text-[16px]">{iconName}</span>
-              <span>Kupon Gift</span>
+              {/* Secret Message Preview Tag (Hidden state) */}
+              {secretMessage && (
+                <div className="mt-1 inline-flex items-center gap-1.5 bg-surface-container-lowest/90 text-on-background px-3 py-1 rounded-full border border-on-background/30 text-[11px] font-headline font-bold shadow-tactile-sm">
+                  <span className="material-symbols-outlined text-[14px] text-primary">
+                    lock
+                  </span>
+                  <span>Messaggio Segreto:</span>
+                  <span className="italic font-mono text-on-surface-variant blur-[2px] hover:blur-none transition-all select-none">
+                    {secretMessage}
+                  </span>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-1.5 text-secondary font-headline text-xs font-bold">
-              <span className="material-symbols-outlined text-[16px]">favorite</span>
-              <span>Per: {recipient || 'Tutti'}</span>
+            {/* Perforation Line with Punch Holes */}
+            <div className="relative w-full h-3 bg-surface-container-lowest flex items-center justify-center">
+              <div className="absolute -left-2.5 w-5 h-5 bg-background border-r-2 border-on-background rounded-full" />
+              <div className="w-[88%] border-t-2 border-dashed border-on-background opacity-60" />
+              <div className="absolute -right-2.5 w-5 h-5 bg-background border-l-2 border-on-background rounded-full" />
+            </div>
+
+            {/* Bottom Section */}
+            <div className="p-3 bg-surface-container-lowest flex justify-between items-center px-4">
+              <div className="flex items-center gap-1.5 text-primary font-headline text-xs font-bold">
+                <span className="material-symbols-outlined text-[16px]">{iconName}</span>
+                <span>Kupon Gift</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-secondary font-headline text-xs font-bold">
+                <span className="material-symbols-outlined text-[16px]">favorite</span>
+                <span>Per: {recipient || 'Tutti'}</span>
+              </div>
             </div>
           </div>
-        </div>
+        </StickerDecorator>
       </section>
 
       {/* Builder Form */}

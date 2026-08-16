@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Un'esperienza digitale tattile, giocosa e moderna per creare, regalare e scambiare coupon ed esperienze con amici e partner.</strong>
+  <strong>Un'esperienza digitale tattile, giocosa e moderna per creare, regalare, collezionare sticker kawaii e scambiare coupon ed esperienze con amici e partner.</strong>
 </p>
 
 <p align="center">
@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/Vite-6.x-646CFF.svg" alt="Vite" />
   <img src="https://img.shields.io/badge/TailwindCSS-3.x-38B2AC.svg" alt="TailwindCSS" />
   <img src="https://img.shields.io/badge/Zustand-5.x-orange.svg" alt="Zustand" />
+  <img src="https://img.shields.io/badge/Capacitor-Android-3880FF.svg" alt="Capacitor Android" />
   <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg" alt="Status" />
 </p>
 
@@ -21,39 +22,55 @@
 
 ## 🌟 Caratteristiche Principali
 
-- 🎟️ **Estetica Carta Tattile & Perforazioni Fisiche**:
-  - Bordi e linee perforate con fori circolari di strappo (*punch-holes*).
-  - Doppia bordatura carbone (`#171B2B`) e ombre tattili rigide (*Neo-brutalist tactile offset*).
-  - Palette pastello curate: *Peach*, *Matcha*, *Butter*, *Lilac*.
+### 🎟️ Estetica Carta Tattile & Coupon Fisici
+- Bordi e linee perforate con fori circolari di strappo (*punch-holes*).
+- Doppia bordatura carbone (`#171B2B`) e ombre tattili rigide (*Neo-brutalist tactile offset*).
+- Palette pastello curate: *Peach*, *Matcha*, *Butter*, *Lilac*.
 
-- 🎁 **Passaggio di Proprietà P2P dal Vivo (Live Handover)**:
-  - Condivisione diretta tramite QR code dedicato: inquadrando il codice con la fotocamera, il Kupon si aggiunge nel portafoglio dell'amico e viene rimosso dal mittente (senza essere consumato subito).
-  - Supporto per condivisione istantanea via **WhatsApp**, **Telegram**, **Web Share API** e link claim universali (`?gift=...`).
+### 📖 Album StickerBook & Loot System Giapponese Kawaii
+- **36 Sticker Vettoriali SVG Esclusivi**:
+  - *Cibo & Snack 🍙*: Onigiri Felice, Dango Tricolore, Ramen Fumante, Taiyaki Dorato, Boba Milk Tea, Nigiri Imperiale.
+  - *Animali & Pet 🐾*: Shiba Inu Sorridente, Coniglietto Mochi, Panda Paffuto, Polipetto Tako, Axolotl Magico, Maneki-Neko d'Oro.
+  - *Tradizione & Portafortuna 🌸*: Teru Teru Bozu, Lanterna Chochin, Gru Origami, Fiore di Sakura, Daruma dei Desideri, Monte Fuji e Sole.
+  - *Magia & Cosette Kawaii ✨*: Nuvola Arcobaleno, Stella Konpeito, Luna Addormentata, Pozione d'Amore, Cristallo Scintillante, Fuocherello Kitsune.
+  - *Amore & Coccole 💖*: Fragolina Kawaii, Pesca Momo, Tazza Neko Latte, Lettera con Sigillo, Orsetti Innamorati, Cuore Alato Divino.
+  - *Distintivi & Speciali 👑*: Timbro "SUGOI!", Ventaglio Dipinto, Medaglia Stella #1, Chiave dei Segreti, Corona Imperiale, Infinito Galattico.
+- **Effetto Sticker Vinilico & Foil Olografico**: spesso contorno bianco die-cut, lucido superiore e riflessi iridescenti arcobaleno per sticker *Rari ⭐*, *Epici 🔮* e *Leggendari 👑*.
+- **Mistero Assoluto**: le figurine non ancora sbloccate sono oscurate al 100% in nero solido (`#171B2B`) con un punto interrogativo bianco `?`.
+- **Unboxing Interattivo delle Bustine**: animazione 3D della bustina sigillata con strappo perforato, seguita da 3 carte misteriose a faccia in giù da toccare e girare una alla volta con effetti sonori di rarità e coriandoli!
+- **Progressione & Livelli**: ricevi pacchetti misteriosi salendo di livello (riscattando coupon) e condividendo coupon con gli amici.
 
-- 📷 **Scanner con Fotocamera Reale (`html5-qrcode` & WebRTC)**:
-  - Scansione in tempo reale con la fotocamera dello smartphone (posteriore/frontale) o webcam del PC.
-  - Caricamento e decodifica diretta di immagini o screenshot con QR code dalla galleria.
+### 🎨 Decorazione Libera dei Coupon
+- Personalizza i tuoi coupon applicando gli sticker disponibili dal tuo zaino.
+- **Drag-and-Drop fluido** su touchscreen e mouse (con `touch-action: none` e pointer capture a prova di scroll accidentale).
+- Mini-toolbar contestuale per ruotare di 45°, ciclare le dimensioni (S/M/L) e rimuovere sticker.
+- Gli sticker applicati viaggiano insieme al coupon nel QR code e nei link di condivisione e vengono visualizzati dal destinatario!
 
-- 🔓 **Messaggio Segreto Rivelato al Riscatto**:
-  - Inserisci una sorpresa o dedica che rimane sigillata e crittografata durante lo stato attivo e si rivela solo al momento dello strappo fisico del biglietto!
+### 🎁 Passaggio di Proprietà P2P dal Vivo (Live Handover)
+- Condivisione diretta tramite QR code dedicato: inquadrando il codice con la fotocamera, il Kupon si trasferisce nel portafoglio dell'amico.
+- Supporto per condivisione istantanea via **WhatsApp**, **Telegram**, **Web Share API** e link claim universali (`?gift=...`).
 
-- 🎶 **Suite Sonora Tattile (Web Audio API a Zero Latenza)**:
-  - 🎟️ Suono croccante di carta perforata che si strappa (`playPaperTear`).
-  - ✨ Campanellino e arpeggio armonico scintillante con coriandoli (`playSuccessChime`).
-  - 🔓 Sblocco misterioso del messaggio segreto (`playSecretUnlocked`).
-  - ⚡ Bip laser dello scanner e click morbidi a bolla (`playCuteTap`).
-  - Controllo volume e mute con preferenza persistente.
+### 📷 Scanner Fotocamera Reale (`html5-qrcode` & WebRTC)
+- Scansione in tempo reale con fotocamera dello smartphone (posteriore/frontale) o webcam PC.
+- Caricamento e decodifica diretta di screenshot o immagini dalla galleria.
 
-- ⏳ **Regola di Pulizia Automatica delle 2 Ore**:
-  - I biglietti strappati mostrano un conto alla rovescia in tempo reale e vengono automaticamente archiviati dopo 2 ore dal riscatto.
+### 🔓 Messaggio Segreto Rivelato al Riscatto
+- Inserisci una sorpresa o dedica che rimane sigillata e si rivela solo al momento dello strappo fisico del biglietto!
 
-- 👤 **Personalizzazione Profilo Completa**:
-  - Scelta tra diverse espressioni della mascotte o caricamento foto/selfie personalizzata.
-  - Modifica di nome, nickname `@handle`, bio e firma predefinita del mittente.
-  - Esportazione backup del portafoglio in formato **JSON**.
+### 🎶 Suite Sonora Tattile (Web Audio API a Zero Latenza)
+- 🎟️ Suono croccante di carta perforata che si strappa (`playPaperTear`).
+- ✨ Campanellino e arpeggio armonico scintillante con coriandoli (`playSuccessChime`).
+- 🔓 Sblocco misterioso del messaggio segreto (`playSecretUnlocked`).
+- ⚡ Bip laser dello scanner e click morbidi a bolla (`playCuteTap`).
+- Controllo volume e preferenza persistente.
 
-- 💡 **Catalogo Modelli & Idee Regalo Pronte all'Uso**:
-  - Modelli già configurati (*Caffè & Cornetto, Pizza & Birra, Massaggio Relax, Cinema Popcorn, Passaggio Auto, Cena Speciale*) pronti all'invio in 1 click.
+### ⏳ Pulizia Automatica delle 2 Ore
+- I biglietti riscattati mostrano un conto alla rovescia in tempo reale e vengono automaticamente archiviati dopo 2 ore dal riscatto.
+
+### 👤 Gestione Profilo & Reset Dati
+- Scelta della mascotte o caricamento avatar personalizzato.
+- Statistiche di collezione e livello profilo.
+- Pulsante per esportare il backup JSON del portafoglio e pulsante per **Azzerare la Collezione StickerBook**.
 
 ---
 
@@ -65,7 +82,7 @@
 
 ### 1. Clona il repository
 ```bash
-git clone https://github.com/TUO_USERNAME/kupon-p2p-exchange.git
+git clone https://github.com/DanieleTrippodo/kupon-p2p-exchange.git
 cd kupon-p2p-exchange
 ```
 
@@ -80,10 +97,37 @@ npm run dev
 ```
 L'applicazione sarà attiva su `http://localhost:3000/`.
 
-### 4. Compilazione per la Produzione
+### 4. Compilazione Web per Produzione
 ```bash
 npm run build
 ```
+
+---
+
+## 📱 Build APK Android (Capacitor)
+
+L'applicazione è configurata con **Capacitor** per la compilazione su dispositivi Android:
+
+1. **Sincronizza gli asset Web compilati con il progetto nativo**:
+   ```bash
+   npm run build
+   npx cap sync android
+   ```
+
+2. **Compila l'APK di Debug con Gradle**:
+   ```bash
+   cd android
+   .\gradlew.bat assembleDebug
+   ```
+
+3. **Trova il file APK**:
+   Il file `.apk` generato sarà disponibile in:
+   `android/app/build/outputs/apk/debug/app-debug.apk`
+
+4. **Installa su dispositivo via ADB**:
+   ```bash
+   adb install -r "android/app/build/outputs/apk/debug/app-debug.apk"
+   ```
 
 ---
 
@@ -91,41 +135,50 @@ npm run build
 
 ```text
 kupon-peer-to-peer-exchange/
-├── public/                     # Asset pubblici (app-icon.png, favicon.png)
+├── android/                    # Progetto nativo Android (Capacitor + Gradle)
+├── public/                     # Asset statici (app-icon.png, favicon.png)
 ├── src/
 │   ├── components/             # Componenti UI tattili
-│   │   ├── BottomNavBar.tsx    # Barra di navigazione mobile
+│   │   ├── BottomNavBar.tsx    # Barra di navigazione mobile con badge bustine
 │   │   ├── CameraQRScanner.tsx # Scanner fotocamera reale WebRTC
 │   │   ├── Confetti.tsx        # Animazione coriandoli celebrativi
-│   │   ├── GiftClaimModal.tsx  # Modale di ricezione regalo da link
+│   │   ├── GiftClaimModal.tsx  # Ricezione e riscatto regalo da link
 │   │   ├── Header.tsx          # Barra superiore con avatar e toggle audio
-│   │   ├── QRCodeModal.tsx     # Modale presentazione QR (Transfer & Redeem)
-│   │   ├── QRScannerModal.tsx  # Modale scanner fotocamera a schermo intero
-│   │   ├── ShareCouponModal.tsx# Pannello condivisione WhatsApp/Telegram/Link
-│   │   └── TicketCard.tsx      # Biglietto perforato a due stati (Attivo / Strappato)
+│   │   ├── QRCodeModal.tsx     # Modale QR (Transfer & Redeem)
+│   │   ├── QRScannerModal.tsx  # Scanner fotocamera a schermo intero
+│   │   ├── ShareCouponModal.tsx# Condivisione WhatsApp/Telegram/Link
+│   │   ├── StickerDecorator.tsx# Canvas di posizionamento e drag degli sticker
+│   │   ├── StickerSvg.tsx      # Renderer SVG 36 sticker kawaii die-cut & olografici
+│   │   └── TicketCard.tsx      # Biglietto perforato con sticker applicati
+│   ├── data/
+│   │   └── stickersCatalog.ts  # Catalogo 36 sticker giapponesi kawaii e rarità
 │   ├── hooks/
 │   │   └── useCoupons.ts       # Hook con filtro reattivo 2-Hour Cleanup
 │   ├── screens/
-│   │   ├── CreateCouponScreen.tsx # Builder coupon con 50+ icone e messaggi segreti
-│   │   ├── DealsScreen.tsx     # Catalogo modelli e idee regalo rapide
+│   │   ├── CreateCouponScreen.tsx # Creazione coupon con sticker e messaggio segreto
 │   │   ├── HomeScreen.tsx      # Wallet principale con stati e filtri
-│   │   ├── ProfileScreen.tsx   # Gestione profilo, avatar e statistiche
-│   │   └── ScanScreen.tsx      # Schermata scanner autonoma
+│   │   ├── ProfileScreen.tsx   # Gestione profilo, statistiche e reset dati
+│   │   ├── ScanScreen.tsx      # Schermata scanner autonoma
+│   │   └── StickersScreen.tsx  # Album StickerBook & unboxing 3D interattivo
 │   ├── services/
 │   │   ├── couponService.ts    # Persistenza localStorage e EventBus real-time
 │   │   ├── qrService.ts        # Generazione token crittografici e packing QR
-│   │   └── soundService.ts     # Motore audio procedurale Web Audio API
+│   │   ├── soundService.ts     # Motore audio procedurale Web Audio API
+│   │   └── stickerService.ts   # Loot engine, rotazione bustine, XP e progressione
 │   ├── store/
 │   │   └── couponStore.ts      # Store globale Zustand
 │   ├── theme/
 │   │   └── tokens.ts           # Design tokens, palette pastello e icone
 │   ├── types/
-│   │   └── coupon.ts           # TypeScript interfaces (Coupon, UserProfile, QRPayload)
+│   │   ├── coupon.ts           # TypeScript interfaces (Coupon, UserProfile, QRPayload)
+│   │   └── sticker.ts          # Type definitions per sticker, rarità e inventario
 │   ├── App.tsx                 # Root layout & routing tab
-│   ├── index.css               # Stili CSS, animazioni laser e perforazioni
-│   └── main.tsx                # Entrypoint React
+│   ├── index.css               # Stili CSS, animazioni e perforazioni
+│   ├── main.tsx                # Entrypoint React
+│   └── test-core-logic.ts      # Suite di test automatici della logica core
+├── capacitor.config.json
 ├── package.json
-├── tailwind.config.js          # Configurazione design tokens Google Stitch
+├── tailwind.config.js          # Configurazione design tokens
 └── tsconfig.json
 ```
 
@@ -134,11 +187,12 @@ kupon-peer-to-peer-exchange/
 ## 🛠️ Tecnologie Utilizzate
 
 - **Framework**: React 18 con TypeScript
+- **Mobile Engine**: Capacitor 7 (Android)
 - **Bundler**: Vite 6
-- **Styling**: Tailwind CSS + Custom Tactile Shadows & Animations
+- **Styling**: Tailwind CSS + Custom Tactile Shadows & Keyframe Animations
 - **State Management**: Zustand
 - **Audio Engine**: Web Audio API (Sintesi procedurale a zero latenza)
-- **Camera Scanner**: `html5-qrcode` (Supporto WebRTC multipiattaforma)
+- **Camera Scanner**: `html5-qrcode` (WebRTC multipiattaforma)
 - **QR Generator**: `qrcode.react` (SVG vettoriale ad alto contrasto)
 - **Effetti Particellari**: `canvas-confetti`
 
@@ -146,6 +200,6 @@ kupon-peer-to-peer-exchange/
 
 ## 📄 Licenza & Crediti
 
-Sviluppato con passione da **DDD**.
+Sviluppato con passione da **DDD** (*Daniele Trippodo*).
 
 *Kupon Peer-to-Peer Exchange • developed by DDD*
